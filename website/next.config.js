@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
-  basePath: '',
+  basePath: '/tvdev-cli',
   images: { unoptimized: true },
   trailingSlash: true,
 }
