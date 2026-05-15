@@ -4,6 +4,8 @@
 
 A single terminal interface to manage devices, build, package, deploy, inspect logs, transfer files, and run shell commands across all major Smart TV platforms.
 
+![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen) ![License](https://img.shields.io/badge/license-MIT-blue)
+
 ---
 
 ## Requirements
