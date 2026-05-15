@@ -126,16 +126,17 @@ export default function InstallHero() {
             <p className="text-xs" style={{ color: 'var(--text-dim)' }}>
               {beta && (
                 <>
-                  Beta installs latest tagged release from{' '}
+                  Installs latest{' '}
                   <a
-                    href="https://github.com/tvdev-cli/tvdev-cli/releases"
+                    href="https://www.npmjs.com/package/unified-tvdevelopment-cli?activeTab=versions"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="underline hover:text-indigo-400"
                     style={{ color: 'var(--indigo-light)' }}
                   >
-                    GitHub releases
-                  </a>
+                    beta version
+                  </a>{' '}
+                  from npm
                 </>
               )}
             </p>

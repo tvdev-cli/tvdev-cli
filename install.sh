@@ -2,8 +2,8 @@
 # unified-tvdevelopment-cli — one-line installer
 # Supports: LG webOS, Samsung Tizen, Amazon Fire TV, Android TV
 #
-#   curl -fsSL https://raw.githubusercontent.com/FernandoHaeser/unified-tvdevelopment-cli/main/install.sh | bash
-#   curl -fsSL https://raw.githubusercontent.com/FernandoHaeser/unified-tvdevelopment-cli/main/install.sh | bash -s -- --beta
+#   curl -fsSL https://raw.githubusercontent.com/tvdev-cli/tvdev-cli/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/tvdev-cli/tvdev-cli/main/install.sh | bash -s -- --beta
 #
 set -euo pipefail
 
@@ -221,6 +221,6 @@ echo -e "${BOLD}${GREEN}  ✓  Installation complete!${RESET}"
 echo ""
 echo -e "  Launch TV Dev Manager:  ${BOLD}${INDIGO}${BIN}${RESET}"
 echo ""
-echo -e "  ${DIM}GitHub : https://github.com/FernandoHaeser/unified-tvdevelopment-cli${RESET}"
+echo -e "  ${DIM}GitHub : https://github.com/tvdev-cli/tvdev-cli${RESET}"
 echo -e "  ${DIM}npm    : https://npmjs.com/package/unified-tvdevelopment-cli${RESET}"
 echo ""

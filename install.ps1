@@ -1,7 +1,7 @@
 # unified-tvdevelopment-cli — Windows installer
 # Run:
-#   iwr -useb https://raw.githubusercontent.com/FernandoHaeser/unified-tvdevelopment-cli/main/install.ps1 | iex
-#   iwr -useb https://raw.githubusercontent.com/FernandoHaeser/unified-tvdevelopment-cli/main/install.ps1 | iex  # then pass -Beta
+#   iwr -useb https://raw.githubusercontent.com/tvdev-cli/tvdev-cli/main/install.ps1 | iex
+#   iwr -useb https://raw.githubusercontent.com/tvdev-cli/tvdev-cli/main/install.ps1 | iex  # then pass -Beta
 
 param(
   [switch]$Beta,
@@ -166,6 +166,6 @@ Write-Host ""
 Write-Host "  Launch TV Dev Manager: " -NoNewline
 Write-Host $Bin -ForegroundColor Cyan
 Write-Host ""
-Write-Host "  GitHub : https://github.com/FernandoHaeser/unified-tvdevelopment-cli" -ForegroundColor DarkGray
+Write-Host "  GitHub : https://github.com/tvdev-cli/tvdev-cli" -ForegroundColor DarkGray
 Write-Host "  npm    : https://npmjs.com/package/unified-tvdevelopment-cli" -ForegroundColor DarkGray
 Write-Host ""
