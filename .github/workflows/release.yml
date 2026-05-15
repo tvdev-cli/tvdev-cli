@@ -1,0 +1,110 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+
+  validate:
+    name: Validate version
+    runs-on: ubuntu-latest
+    needs: test
+    outputs:
+      version:    ${{ steps.extract.outputs.version }}
+      prerelease: ${{ steps.extract.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract & validate version
+        id: extract
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          PKG=$(node -p "require('./package.json').version")
+          EXPECTED="v${PKG}"
+          if [ "${TAG}" != "${EXPECTED}" ]; then
+            echo "::error::Tag '${TAG}' does not match package.json version '${PKG}'"
+            exit 1
+          fi
+          if echo "$PKG" | grep -q '-'; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "version=${PKG}" >> "$GITHUB_OUTPUT"
+
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    needs: validate
+    environment: npm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+          cache: "npm"
+      - run: npm ci
+      - run: npm run build
+      - name: Publish
+        run: |
+          if [ "${{ needs.validate.outputs.prerelease }}" = "true" ]; then
+            npm publish --tag beta --provenance --access public
+          else
+            npm publish --provenance --access public
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+
+  github-release:
+    name: GitHub Release
+    runs-on: ubuntu-latest
+    needs: [validate, publish]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci && npm run build
+      - name: Generate release notes body
+        id: notes
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          PRERELEASE="${{ needs.validate.outputs.prerelease }}"
+          if [ "$PRERELEASE" = "true" ]; then
+            cp .github/release-beta.md release_body.md
+            echo "title=v${VERSION} - Beta Release" >> "$GITHUB_OUTPUT"
+          else
+            cp .github/release-stable.md release_body.md
+            echo "title=v${VERSION} — Stable Release" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ steps.notes.outputs.title }}
+          body_path: release_body.md
+          append_body: true
+          generate_release_notes: true
+          prerelease: ${{ needs.validate.outputs.prerelease == 'true' }}
+          files: dist/cli.mjs
+          make_latest: ${{ needs.validate.outputs.prerelease == 'false' }}

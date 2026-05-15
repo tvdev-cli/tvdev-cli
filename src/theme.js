@@ -1,0 +1,115 @@
+import chalk from 'chalk';
+
+export const PLATFORM_IDS = ['webos', 'tizen', 'amazon', 'android'];
+
+export const PLATFORM_META = {
+  webos:   { label: 'LG webOS',        color: '#00C3E3', icon: '⬡',  hint: 'ares-cli' },
+  tizen:   { label: 'Samsung Tizen',   color: '#4C7BF4', icon: '◈',  hint: 'tizen + sdb' },
+  amazon:  { label: 'Amazon Fire TV',  color: '#FF9900', icon: '◆',  hint: 'adb + inputd-cli' },
+  android: { label: 'Android TV',      color: '#3DDC84', icon: '◉',  hint: 'adb + gradle' },
+};
+
+export const COLORS = {
+  primary:   '#818CF8',
+  accent:    '#F59E0B',
+  success:   '#22C55E',
+  error:     '#EF4444',
+  warning:   '#F97316',
+  muted:     '#64748B',
+  text:      '#E2E8F0',
+  dim:       '#475569',
+  highlight: '#C084FC',
+};
+
+export const c = {
+  primary:      chalk.hex(COLORS.primary),
+  accent:       chalk.hex(COLORS.accent),
+  success:      chalk.hex(COLORS.success),
+  error:        chalk.hex(COLORS.error),
+  warning:      chalk.hex(COLORS.warning),
+  muted:        chalk.hex(COLORS.muted),
+  text:         chalk.hex(COLORS.text),
+  dim:          chalk.hex(COLORS.dim),
+  highlight:    chalk.hex(COLORS.highlight),
+  bold:         chalk.bold,
+  primaryBold:  chalk.hex(COLORS.primary).bold,
+  accentBold:   chalk.hex(COLORS.accent).bold,
+  successBold:  chalk.hex(COLORS.success).bold,
+  errorBold:    chalk.hex(COLORS.error).bold,
+  warningBold:  chalk.hex(COLORS.warning).bold,
+  platform:     (p) => chalk.hex(PLATFORM_META[p]?.color ?? COLORS.primary),
+};
+
+export const ICONS = {
+  dashboard:    '◉',
+  device:       '⬡',
+  generate:     '✦',
+  package:      '⊟',
+  apps:         '⊕',
+  logs:         '≡',
+  transfer:     '⇄',
+  shell:        '$',
+  debug:        '◎',
+  build:        '⚙',
+  input:        '◈',
+  emulator:     '▣',
+  check:        '✓',
+  cross:        '✗',
+  warn:         '⚠',
+  info:         '●',
+  arrow:        '›',
+  arrowRight:   '→',
+  connected:    '●',
+  disconnected: '○',
+  running:      '▶',
+  stopped:      '■',
+  selected:     '▶',
+  spinner:      ['⠋','⠙','⠹','⠸','⠼','⠴','⠦','⠧','⠇','⠏'],
+};
+
+export const NAV_ITEMS = {
+  webos: [
+    { id: 'dashboard', label: 'Dashboard',       icon: ICONS.dashboard },
+    { id: 'devices',   label: 'Devices',          icon: ICONS.device    },
+    { id: 'generate',  label: 'Generate App',     icon: ICONS.generate  },
+    { id: 'deploy',    label: 'Package & Deploy', icon: ICONS.package   },
+    { id: 'apps',      label: 'App Manager',      icon: ICONS.apps      },
+    { id: 'logs',      label: 'Log Viewer',        icon: ICONS.logs      },
+    { id: 'transfer',  label: 'File Transfer',    icon: ICONS.transfer  },
+    { id: 'shell',     label: 'Shell',            icon: ICONS.shell     },
+    { id: 'inspector', label: 'Inspector',         icon: ICONS.debug     },
+  ],
+  tizen: [
+    { id: 'dashboard', label: 'Dashboard',       icon: ICONS.dashboard },
+    { id: 'devices',   label: 'Devices',          icon: ICONS.device    },
+    { id: 'generate',  label: 'Generate App',     icon: ICONS.generate  },
+    { id: 'deploy',    label: 'Package & Deploy', icon: ICONS.package   },
+    { id: 'apps',      label: 'App Manager',      icon: ICONS.apps      },
+    { id: 'logs',      label: 'Log Viewer',        icon: ICONS.logs      },
+    { id: 'transfer',  label: 'File Transfer',    icon: ICONS.transfer  },
+    { id: 'shell',     label: 'Shell',            icon: ICONS.shell     },
+    { id: 'emulator',  label: 'Emulator',         icon: ICONS.emulator  },
+  ],
+  amazon: [
+    { id: 'dashboard', label: 'Dashboard',       icon: ICONS.dashboard },
+    { id: 'devices',   label: 'Devices',          icon: ICONS.device    },
+    { id: 'deploy',    label: 'Install APK',      icon: ICONS.package   },
+    { id: 'apps',      label: 'App Manager',      icon: ICONS.apps      },
+    { id: 'input',     label: 'Input Simulator',  icon: ICONS.input     },
+    { id: 'logs',      label: 'Log Viewer',        icon: ICONS.logs      },
+    { id: 'transfer',  label: 'File Transfer',    icon: ICONS.transfer  },
+    { id: 'shell',     label: 'Shell',            icon: ICONS.shell     },
+    { id: 'inspector', label: 'Debug Info',       icon: ICONS.debug     },
+  ],
+  android: [
+    { id: 'dashboard', label: 'Dashboard',       icon: ICONS.dashboard },
+    { id: 'devices',   label: 'Devices',          icon: ICONS.device    },
+    { id: 'build',     label: 'Build',            icon: ICONS.build     },
+    { id: 'deploy',    label: 'Install APK',      icon: ICONS.package   },
+    { id: 'apps',      label: 'App Manager',      icon: ICONS.apps      },
+    { id: 'logs',      label: 'Log Viewer',        icon: ICONS.logs      },
+    { id: 'transfer',  label: 'File Transfer',    icon: ICONS.transfer  },
+    { id: 'shell',     label: 'Shell',            icon: ICONS.shell     },
+    { id: 'emulator',  label: 'Emulator',         icon: ICONS.emulator  },
+  ],
+};

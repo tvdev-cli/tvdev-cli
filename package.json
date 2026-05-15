@@ -1,0 +1,63 @@
+{
+  "name": "unified-tvdevelopment-cli",
+  "version": "1.0.0",
+  "description": "Universal TUI manager for Smart TV development — LG webOS, Samsung Tizen, Amazon Fire TV, Android TV",
+  "type": "module",
+  "bin": {
+    "tvdev": "dist/cli.mjs"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "mkdir -p dist && esbuild src/index.js --bundle --packages=external --platform=node --format=esm --outfile=dist/_bundle.mjs --loader:.js=jsx && printf '#!/usr/bin/env node\\n' | cat - dist/_bundle.mjs > dist/cli.mjs && chmod +x dist/cli.mjs && rm dist/_bundle.mjs",
+    "start": "npm run build && node dist/cli.mjs",
+    "dev": "npm run build && node dist/cli.mjs",
+    "prepare": "npm run build",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:e2e": "vitest run tests/e2e",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "webos",
+    "tizen",
+    "android-tv",
+    "fire-tv",
+    "amazon",
+    "ares-cli",
+    "sdb",
+    "adb",
+    "tui",
+    "cli",
+    "smart-tv",
+    "lg",
+    "samsung"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FernandoHaeser/unified-tvdevelopment-cli"
+  },
+  "files": [
+    "dist/",
+    "install.sh",
+    "install.ps1",
+    "README.md",
+    "docs/"
+  ],
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "execa": "^9.3.0",
+    "ink": "^5.0.1",
+    "ink-text-input": "^6.0.0",
+    "react": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^2.1.9",
+    "esbuild": "^0.28.0",
+    "vitest": "^2.1.9"
+  }
+}
