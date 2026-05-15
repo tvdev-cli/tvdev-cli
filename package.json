@@ -1,6 +1,6 @@
 {
   "name": "unified-tvdevelopment-cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Universal TUI manager for Smart TV development — LG webOS, Samsung Tizen, Amazon Fire TV, Android TV",
   "type": "module",
   "bin": {
@@ -10,7 +10,7 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "build": "mkdir -p dist && esbuild src/index.js --bundle --packages=external --platform=node --format=esm --outfile=dist/_bundle.mjs --loader:.js=jsx && printf '#!/usr/bin/env node\\n' | cat - dist/_bundle.mjs > dist/cli.mjs && chmod +x dist/cli.mjs && rm dist/_bundle.mjs",
+    "build": "mkdir -p dist && esbuild src/index.js --bundle --alias:react-devtools-core=./scripts/devtools-stub.js --platform=node --format=esm --banner:js=\"import{createRequire}from'module';const require=createRequire(import.meta.url);\" --outfile=dist/_bundle.mjs --loader:.js=jsx && printf '#!/usr/bin/env node\\n' | cat - dist/_bundle.mjs > dist/cli.mjs && chmod +x dist/cli.mjs && rm dist/_bundle.mjs",
     "start": "npm run build && node dist/cli.mjs",
     "dev": "npm run build && node dist/cli.mjs",
     "prepare": "npm run build",
