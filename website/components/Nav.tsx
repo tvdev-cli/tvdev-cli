@@ -2,7 +2,7 @@
 
 import { TvIcon } from './icons'
 
-export default function Nav({ version }: { version?: string }) {
+export default function Nav() {
   return (
     <nav
       className="sticky top-0 z-50 flex items-center justify-between px-6 md:px-16 h-16"
@@ -15,18 +15,6 @@ export default function Nav({ version }: { version?: string }) {
       <a href="#" className="flex items-center gap-2.5 text-[var(--text)] font-bold text-lg no-underline tracking-tight">
         <TvIcon />
         tvdev
-        {version && (
-          <span
-            className="text-[0.65rem] font-mono tracking-widest px-2 py-0.5 rounded-full border"
-            style={{
-              background: 'var(--indigo-dim)',
-              color: 'var(--indigo-light)',
-              borderColor: 'var(--border-strong)',
-            }}
-          >
-            {version}
-          </span>
-        )}
       </a>
 
       <div className="flex items-center gap-2">
