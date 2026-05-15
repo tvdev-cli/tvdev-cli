@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# tvdev-cli — one-line installer
-# Pulls the latest release binary directly from GitHub Releases.
+# tvdev-cli — one-line installer (macOS / Linux)
 #
 #   curl -fsSL https://raw.githubusercontent.com/tvdev-cli/tvdev-cli/main/install.sh | bash
 #   curl -fsSL https://raw.githubusercontent.com/tvdev-cli/tvdev-cli/main/install.sh | bash -s -- --beta
@@ -12,12 +11,15 @@ BIN="tvdev"
 REQUIRED_NODE=18
 NVM_VERSION="v0.39.7"
 INSTALL_NODE_VERSION="20"
-CHANNEL="stable"   # stable | beta
+INSTALL_DIR="${HOME}/.local/bin"
+VERSION_FILE="${INSTALL_DIR}/.tvdev-version"
+CHANNEL="stable"
 
 # ── Flags ─────────────────────────────────────────────────────────────────────
 for arg in "${@:-}"; do
   case "$arg" in
-    --beta) CHANNEL="beta" ;;
+    --beta)   CHANNEL="beta" ;;
+    --stable) CHANNEL="stable" ;;
   esac
 done
 
@@ -36,9 +38,7 @@ banner() {
   echo -e "  ${INDIGO}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
   echo -e "  ${DIM}Universal Smart TV Development CLI${RESET}"
   echo -e "  ${DIM}LG webOS · Samsung Tizen · Amazon Fire TV · Android TV${RESET}"
-  if [ "$CHANNEL" = "beta" ]; then
-    echo -e "  ${YELLOW}  channel: beta${RESET}"
-  fi
+  [ "$CHANNEL" = "beta" ] && echo -e "  ${YELLOW}  channel: beta${RESET}"
   echo ""
 }
 
@@ -58,57 +58,58 @@ semver_gte() {
 detect_shell_rc() {
   case "${SHELL:-}" in
     */zsh)  echo "$HOME/.zshrc" ;;
-    */bash)
-      [ -f "$HOME/.bash_profile" ] && echo "$HOME/.bash_profile" || echo "$HOME/.bashrc" ;;
+    */bash) [ -f "$HOME/.bash_profile" ] && echo "$HOME/.bash_profile" || echo "$HOME/.bashrc" ;;
     */fish) echo "$HOME/.config/fish/config.fish" ;;
     *)      echo "$HOME/.profile" ;;
   esac
 }
 
-# ── Resolve GitHub release ────────────────────────────────────────────────────
-fetch_release_info() {
-  local url
+gh_api() {
+  curl -fsSL \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "$1"
+}
+
+# ── Resolve latest release tag from GitHub ────────────────────────────────────
+resolve_release_tag() {
   if [ "$CHANNEL" = "beta" ]; then
-    # latest pre-release (first entry that has prerelease:true)
-    url="https://api.github.com/repos/${REPO}/releases"
-    curl -fsSL "$url" \
+    gh_api "https://api.github.com/repos/${REPO}/releases" \
       | grep -E '"tag_name"|"prerelease"' \
       | paste - - \
-      | awk -F'"' '/"prerelease": true/{print $4; exit}'
+      | awk -F'"' '$0 ~ /"prerelease": true/ { print $4; exit }'
   else
-    # latest stable release
-    curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" \
+    gh_api "https://api.github.com/repos/${REPO}/releases/latest" \
       | grep '"tag_name"' \
       | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/'
   fi
 }
 
-# ── Banner ────────────────────────────────────────────────────────────────────
 banner
 
-# ── Resolve release tag ───────────────────────────────────────────────────────
+# ── Resolve release ───────────────────────────────────────────────────────────
 step "Resolving latest ${CHANNEL} release from GitHub"
 
-RELEASE_TAG=$(fetch_release_info)
-[ -z "$RELEASE_TAG" ] && fail "Could not resolve release tag from GitHub. Check https://github.com/${REPO}/releases"
+RELEASE_TAG=$(resolve_release_tag)
+[ -z "$RELEASE_TAG" ] && fail "Could not resolve release from GitHub. Visit https://github.com/${REPO}/releases"
 
 RELEASE_VERSION="${RELEASE_TAG#v}"
-info "Release  : ${RELEASE_TAG}"
+info "Latest release : ${RELEASE_TAG}"
 
-# Download URL for the cli.mjs asset attached to the release
-DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${RELEASE_TAG}/cli.mjs"
-
-# ── Idempotency check ─────────────────────────────────────────────────────────
+# ── Idempotency ───────────────────────────────────────────────────────────────
 step "Checking existing installation"
 
 INSTALLED_VER=""
-if command -v "$BIN" &>/dev/null; then
-  INSTALLED_VER=$("$BIN" --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+[^ ]*' | head -1 || true)
-  ok "${BIN} already installed"
-  [ -n "$INSTALLED_VER" ] && info "Installed : ${INSTALLED_VER}"
-  info "Latest    : ${RELEASE_VERSION} (${CHANNEL})"
+if [ -f "$VERSION_FILE" ]; then
+  INSTALLED_VER=$(cat "$VERSION_FILE" 2>/dev/null | tr -d '[:space:]v' || true)
+fi
 
-  if [ -n "$INSTALLED_VER" ] && semver_gte "$INSTALLED_VER" "$RELEASE_VERSION"; then
+if [ -n "$INSTALLED_VER" ] && command -v "$BIN" &>/dev/null; then
+  ok "${BIN} already installed"
+  info "Installed : v${INSTALLED_VER}"
+  info "Latest    : v${RELEASE_VERSION} (${CHANNEL})"
+
+  if semver_gte "$INSTALLED_VER" "$RELEASE_VERSION"; then
     ok "Already up to date — nothing to do"
     echo ""
     echo -e "  ${BOLD}Run: ${INDIGO}${BIN}${RESET}"
@@ -138,9 +139,7 @@ if ! command -v node &>/dev/null; then
   NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
   if [ -s "$NVM_DIR/nvm.sh" ]; then
     source "$NVM_DIR/nvm.sh"
-    if ! command -v node &>/dev/null; then
-      nvm install "$INSTALL_NODE_VERSION" && nvm use "$INSTALL_NODE_VERSION"
-    fi
+    ! command -v node &>/dev/null && nvm install "$INSTALL_NODE_VERSION" && nvm use "$INSTALL_NODE_VERSION"
   else
     install_node_via_nvm
   fi
@@ -154,46 +153,49 @@ NODE_MAJOR=$(node --version | sed 's/v//' | cut -d. -f1)
 
 ok "Node.js $(node --version)"
 
-# ── Download & install binary from GitHub Release ────────────────────────────
-step "Downloading ${BIN} ${RELEASE_TAG} from GitHub"
-info "Source: ${DOWNLOAD_URL}"
+# ── Download binary from GitHub release ───────────────────────────────────────
+step "Downloading ${BIN} ${RELEASE_TAG}"
 
-INSTALL_DIR="${HOME}/.local/bin"
 mkdir -p "$INSTALL_DIR"
 BIN_PATH="${INSTALL_DIR}/${BIN}"
+DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${RELEASE_TAG}/cli.mjs"
+
+info "Source : ${DOWNLOAD_URL}"
 
 if curl -fsSL --output "$BIN_PATH" "$DOWNLOAD_URL"; then
   chmod +x "$BIN_PATH"
+  echo "$RELEASE_VERSION" > "$VERSION_FILE"
   ok "Installed to ${BIN_PATH}"
 else
-  # fallback: try npm if GitHub download fails
   warn "GitHub download failed — falling back to npm"
-  ! command -v npm &>/dev/null && fail "npm not found. Install Node.js from https://nodejs.org"
+  command -v npm &>/dev/null || fail "npm not found and GitHub download failed. Install Node.js from https://nodejs.org"
   NPM_TAG="latest"
   [ "$CHANNEL" = "beta" ] && NPM_TAG="beta"
   npm install -g "unified-tvdevelopment-cli@${NPM_TAG}" 2>&1 | grep -v "^npm warn" | grep -v "^$" || true
+  # point BIN_PATH to npm global bin for the version file
+  BIN_PATH=$(npm prefix -g)/bin/${BIN}
+  echo "$RELEASE_VERSION" > "$VERSION_FILE"
 fi
 
 # ── PATH ──────────────────────────────────────────────────────────────────────
 step "Setting up PATH"
 
 rc_file=$(detect_shell_rc)
-export_line="export PATH=\"\$PATH:${INSTALL_DIR}\""
 
 if echo ":${PATH}:" | grep -q ":${INSTALL_DIR}:"; then
   ok "PATH already contains ${INSTALL_DIR}"
-elif [[ "${SHELL:-}" == */fish ]]; then
-  echo "set -gx PATH \$PATH ${INSTALL_DIR}" >> "$rc_file"
-  ok "Added PATH entry to ${rc_file}"
 else
-  if ! grep -qF "$INSTALL_DIR" "$rc_file" 2>/dev/null; then
-    echo "" >> "$rc_file"
-    echo "# added by tvdev-cli installer" >> "$rc_file"
-    echo "$export_line" >> "$rc_file"
-    ok "Added PATH entry to ${rc_file}"
+  if [[ "${SHELL:-}" == */fish ]]; then
+    grep -qF "$INSTALL_DIR" "$rc_file" 2>/dev/null || \
+      echo "set -gx PATH \$PATH ${INSTALL_DIR}" >> "$rc_file"
   else
-    ok "PATH entry already in ${rc_file}"
+    if ! grep -qF "$INSTALL_DIR" "$rc_file" 2>/dev/null; then
+      echo "" >> "$rc_file"
+      echo "# added by tvdev-cli installer" >> "$rc_file"
+      echo "export PATH=\"\$PATH:${INSTALL_DIR}\"" >> "$rc_file"
+    fi
   fi
+  ok "Added ${INSTALL_DIR} to PATH in ${rc_file}"
   export PATH="${PATH}:${INSTALL_DIR}"
 fi
 
@@ -202,36 +204,26 @@ hash -r 2>/dev/null || true
 if command -v "$BIN" &>/dev/null; then
   ok "${BIN} is in PATH → $(command -v ${BIN})"
 else
-  warn "${BIN} not in PATH for this session. Restart terminal or:"
+  warn "${BIN} not in PATH yet — restart terminal or run:"
   echo -e "\n    source $(detect_shell_rc)\n"
 fi
 
-# ── Platform tools ────────────────────────────────────────────────────────────
+# ── Platform tools (optional) ─────────────────────────────────────────────────
 step "Checking platform-specific tools"
 
-if command -v ares-setup-device &>/dev/null; then
-  ok "ares-cli (LG webOS) → $(command -v ares-setup-device)"
-else
-  warn "ares-cli not found → npm install -g @webosose/ares-cli"
-fi
+check_tool() {
+  local cmd=$1 label=$2 hint=$3
+  if command -v "$cmd" &>/dev/null; then
+    ok "${label} → $(command -v ${cmd})"
+  else
+    warn "${label} not found — ${hint}"
+  fi
+}
 
-if command -v sdb &>/dev/null; then
-  ok "sdb (Samsung Tizen) → $(command -v sdb)"
-else
-  warn "sdb not found → install Tizen Studio: developer.samsung.com/smarttv"
-fi
-
-if command -v adb &>/dev/null; then
-  ok "adb (Fire TV / Android TV) → $(command -v adb)"
-else
-  warn "adb not found → brew install android-platform-tools"
-fi
-
-if command -v inputd-cli &>/dev/null; then
-  ok "inputd-cli (Fire TV input) → $(command -v inputd-cli)"
-else
-  warn "inputd-cli not found (optional — Fire TV remote input simulation)"
-fi
+check_tool ares-setup-device "ares-cli  (LG webOS)"          "npm install -g @webosose/ares-cli"
+check_tool sdb               "sdb       (Samsung Tizen)"      "install Tizen Studio: developer.samsung.com/smarttv"
+check_tool adb               "adb       (Fire TV/Android TV)" "brew install android-platform-tools  OR  Android Studio SDK"
+check_tool inputd-cli        "inputd-cli (Fire TV input)"     "optional — Fire TV remote input simulation"
 
 # ── Done ──────────────────────────────────────────────────────────────────────
 echo ""
